@@ -1,0 +1,169 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTH
+// ============================================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String // bcrypt hashed
+  role      String   @default("STAFF") // ADMIN | STAFF
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  auditLogs AuditLog[]
+}
+
+// ============================================
+// MENU
+// ============================================
+
+model Category {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  sortOrder Int      @default(0)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  products Product[]
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  name        String
+  price       Int // VND, stored as integer
+  image       String?
+  description String?
+  categoryId  String
+  isAvailable Boolean @default(true)
+  sortOrder   Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  category   Category    @relation(fields: [categoryId], references: [id])
+  orderItems OrderItem[]
+
+  @@index([categoryId])
+  @@index([isAvailable])
+}
+
+// ============================================
+// RESTAURANT TABLES
+// ============================================
+
+model RestaurantTable {
+  id        String   @id @default(cuid())
+  number    Int      @unique
+  name      String
+  isActive  Boolean  @default(true)
+  qrCode    String?  // For future per-table QR
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  orders Order[]
+}
+
+// ============================================
+// ORDERS
+// ============================================
+
+model Order {
+  id           String   @id @default(cuid())
+  orderNumber  String   @unique // ORD-000001
+  customerName String
+  tableId      String
+  sessionId    String   // Link orders in same customer session
+  status       String   @default("NEW") // NEW|CONFIRMED|PREPARING|READY|SERVED|COMPLETED|CANCELLED
+  totalAmount  Int      // VND
+  note         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  table RestaurantTable @relation(fields: [tableId], references: [id])
+  items OrderItem[]
+
+  @@index([createdAt])
+  @@index([status])
+  @@index([tableId])
+  @@index([sessionId])
+}
+
+model OrderItem {
+  id           String  @id @default(cuid())
+  orderId      String
+  productId    String
+  // SNAPSHOT fields - price and name at time of order
+  productName  String
+  productPrice Int
+  quantity     Int
+  note         String?
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+}
+
+// ============================================
+// STAFF CALLS
+// ============================================
+
+model StaffCall {
+  id           String   @id @default(cuid())
+  tableId      String
+  tableName    String   // snapshot
+  tableNumber  Int      // snapshot
+  customerName String
+  sessionId    String
+  status       String   @default("PENDING") // PENDING|ACKNOWLEDGED|RESOLVED
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+// ============================================
+// FEEDBACK
+// ============================================
+
+model Feedback {
+  id           String   @id @default(cuid())
+  orderId      String
+  customerName String
+  tableNumber  Int
+  rating       Int // 1-5
+  comment      String?
+  createdAt    DateTime @default(now())
+}
+
+// ============================================
+// AUDIT LOG
+// ============================================
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  userId    String?
+  action    String   // CREATE, UPDATE, DELETE, LOGIN, STATUS_CHANGE, etc.
+  entity    String   // Product, Category, Order, etc.
+  entityId  String?
+  details   String?  // JSON string with old/new values
+  createdAt DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  @@index([createdAt])
+  @@index([entity])
+}
