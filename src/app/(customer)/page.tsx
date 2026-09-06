@@ -83,38 +83,43 @@ function WelcomeContent() {
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        p: 3,
+        px: 2,
+        py: { xs: 2, sm: 3 },
         bgcolor: '#F8FAFC',
+        overflow: 'hidden',
       }}
     >
       {/* Brand Header */}
-      <Box sx={{ textAlign: 'center', mb: 3 }}>
+      <Box sx={{ textAlign: 'center', mb: { xs: 2, sm: 2.5 } }}>
         <Box
           sx={{
-            width: 76,
-            height: 76,
+            width: { xs: 58, sm: 66 },
+            height: { xs: 58, sm: 66 },
             mx: 'auto',
-            mb: 2,
+            mb: 1.5,
             background: 'linear-gradient(135deg, #FF6B35 0%, #FF4500 100%)',
-            borderRadius: '24px',
+            borderRadius: '20px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            boxShadow: '0 12px 28px -4px rgba(255, 91, 38, 0.35)',
+            boxShadow: '0 10px 24px -4px rgba(255, 91, 38, 0.35)',
             color: '#FFFFFF',
           }}
         >
-          <RestaurantRoundedIcon sx={{ fontSize: 40 }} />
+          <RestaurantRoundedIcon sx={{ fontSize: { xs: 30, sm: 34 } }} />
         </Box>
-        <Typography variant="h4" sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: '-0.03em' }}>
+        <Typography
+          variant="h5"
+          sx={{ fontWeight: 900, color: '#0F172A', letterSpacing: '-0.03em', fontSize: { xs: '1.35rem', sm: '1.5rem' } }}
+        >
           Suối Đá Hòn Giao
         </Typography>
-        <Typography variant="body2" sx={{ color: '#64748B', mt: 0.5 }}>
+        <Typography variant="caption" sx={{ color: '#64748B', display: 'block', mt: 0.25 }}>
           Hệ thống gọi món QR • Ẩm thực núi rừng
         </Typography>
       </Box>
@@ -124,15 +129,15 @@ function WelcomeContent() {
         elevation={0}
         sx={{
           width: '100%',
-          maxWidth: 400,
-          borderRadius: '28px',
+          maxWidth: 380,
+          borderRadius: '24px',
           border: '1px solid #F1F5F9',
-          boxShadow: '0 20px 40px -15px rgba(15, 23, 42, 0.08)',
-          p: { xs: 2.5, sm: 3.5 },
+          boxShadow: '0 16px 36px -12px rgba(15, 23, 42, 0.08)',
+          p: { xs: 2.25, sm: 3 },
         }}
       >
-        <Box sx={{ textAlign: 'center', mb: 3 }}>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0F172A' }}>
+        <Box sx={{ textAlign: 'center', mb: 2 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0F172A', lineHeight: 1.2 }}>
             Bắt đầu gọi món
           </Typography>
           <Typography variant="caption" sx={{ color: '#94A3B8' }}>
@@ -141,7 +146,7 @@ function WelcomeContent() {
         </Box>
 
         <form onSubmit={handleSubmit}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
             <TextField
               label="Tên của bạn *"
               placeholder="Ví dụ: Anh Nam, Chị Linh..."
@@ -150,9 +155,9 @@ function WelcomeContent() {
               fullWidth
               autoFocus
               variant="outlined"
-              size="medium"
+              size="small"
               slotProps={{
-                input: { sx: { borderRadius: '16px', bgcolor: '#F8FAFC' } },
+                input: { sx: { borderRadius: '14px', bgcolor: '#F8FAFC' } },
               }}
             />
 
@@ -164,14 +169,14 @@ function WelcomeContent() {
               onChange={(e) => setTableNumber(e.target.value)}
               fullWidth
               variant="outlined"
-              size="medium"
+              size="small"
               slotProps={{
-                input: { sx: { borderRadius: '16px', bgcolor: '#F8FAFC' } },
+                input: { sx: { borderRadius: '14px', bgcolor: '#F8FAFC' } },
               }}
             />
 
             {error && (
-              <Alert severity="error" sx={{ borderRadius: '14px', fontSize: '0.8rem' }}>
+              <Alert severity="error" sx={{ borderRadius: '12px', fontSize: '0.75rem', py: 0.5 }}>
                 {error}
               </Alert>
             )}
@@ -181,18 +186,18 @@ function WelcomeContent() {
               variant="contained"
               size="large"
               disabled={loading}
-              endIcon={!loading && <ArrowForwardRoundedIcon />}
+              endIcon={!loading && <ArrowForwardRoundedIcon sx={{ fontSize: 18 }} />}
               sx={{
-                py: 1.6,
-                borderRadius: '16px',
-                fontSize: '0.95rem',
+                py: 1.3,
+                borderRadius: '14px',
+                fontSize: '0.9rem',
                 fontWeight: 800,
-                boxShadow: '0 8px 24px rgba(255, 91, 38, 0.35)',
+                boxShadow: '0 6px 20px rgba(255, 91, 38, 0.35)',
               }}
             >
               {loading ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <CircularProgress size={20} color="inherit" />
+                  <CircularProgress size={18} color="inherit" />
                   <span>Đang mở menu...</span>
                 </Box>
               ) : (
@@ -204,7 +209,7 @@ function WelcomeContent() {
       </Card>
 
       {/* Footer */}
-      <Typography variant="caption" sx={{ color: '#94A3B8', mt: 3 }}>
+      <Typography variant="caption" sx={{ color: '#94A3B8', mt: 2, fontSize: '0.75rem' }}>
         Không cần cài đặt app • Không cần tạo tài khoản
       </Typography>
     </Box>

@@ -121,17 +121,29 @@ function BottomNav() {
   );
 }
 
+function CustomerLayoutContent({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+  const showBottomNav =
+    pathname &&
+    pathname !== '/' &&
+    pathname !== '/cart' &&
+    !pathname.startsWith('/order/') &&
+    !pathname.startsWith('/table/');
+
+  return (
+    <div className={`min-h-screen bg-[#F8FAFC] text-slate-800 ${showBottomNav ? 'pb-28' : ''}`}>
+      <main className="max-w-md mx-auto">{children}</main>
+      <BottomNav />
+      <SessionTerminatedModal />
+    </div>
+  );
+}
+
 export default function CustomerLayout({ children }: { children: ReactNode }) {
   return (
     <SessionProvider>
       <CartProvider>
-        <div className="min-h-screen bg-[#F8FAFC] pb-32 text-slate-800">
-          <main className="max-w-md mx-auto">
-            {children}
-          </main>
-          <BottomNav />
-          <SessionTerminatedModal />
-        </div>
+        <CustomerLayoutContent>{children}</CustomerLayoutContent>
       </CartProvider>
     </SessionProvider>
   );
