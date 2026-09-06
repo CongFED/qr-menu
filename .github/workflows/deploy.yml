@@ -1,0 +1,51 @@
+name: Deploy QR Menu
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to VPS
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          VPS_PORT: ${{ secrets.VPS_PORT }}
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -e
+
+          mkdir -p ~/.ssh
+          printf '%s\n' "$VPS_SSH_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+
+          ssh-keyscan -p "$VPS_PORT" "$VPS_HOST" >> ~/.ssh/known_hosts
+
+          ssh -p "$VPS_PORT" "$VPS_USER@$VPS_HOST" << 'EOF'
+            set -e
+
+            cd /var/www/qr-menu
+
+            echo "===== UPDATE SOURCE ====="
+            git fetch origin
+            git reset --hard origin/main
+
+            echo "===== INSTALL DEPENDENCIES ====="
+            npm ci --no-audit --no-fund
+
+            echo "===== PRISMA GENERATE ====="
+            npx prisma generate
+
+            echo "===== BUILD ====="
+            npm run build
+
+            echo "===== RESTART PM2 ====="
+            pm2 restart qr-menu --update-env
+
+            echo "===== DEPLOY SUCCESS ====="
+            pm2 status
+          EOF
