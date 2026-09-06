@@ -103,6 +103,12 @@ function StaffNav() {
 }
 
 export default function StaffLayout({ children }: { children: ReactNode }) {
+  const pathname = usePathname();
+
+  if (pathname === '/staff/login') {
+    return <SessionProvider>{children}</SessionProvider>;
+  }
+
   return (
     <SessionProvider>
       <div className="min-h-screen bg-[#F8FAFC]">

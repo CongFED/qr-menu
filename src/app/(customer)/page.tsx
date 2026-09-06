@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import {
   Card,
@@ -25,6 +25,14 @@ function WelcomeContent() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  // If table parameter exists in URL, redirect directly to /table/[number]
+  useEffect(() => {
+    const table = searchParams?.get('table');
+    if (table) {
+      router.replace(`/table/${table}`);
+    }
+  }, [searchParams, router]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -43,21 +51,26 @@ function WelcomeContent() {
     setLoading(true);
 
     try {
-      // Verify table exists
-      const res = await fetch(`/api/tables/verify?number=${tableNum}`);
+      // Create or join active server table session
+      const res = await fetch(`/api/tables/${tableNum}/session`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customerName: customerName.trim() }),
+      });
       const data = await res.json();
 
-      if (!res.ok || !data.table) {
-        setError('Số bàn không tồn tại hoặc tạm ngưng. Vui lòng kiểm tra lại.');
+      if (!res.ok || !data.session) {
+        setError(data.error || 'Số bàn không tồn tại hoặc tạm ngưng. Vui lòng kiểm tra lại.');
         setLoading(false);
         return;
       }
 
       setSession({
-        customerName: customerName.trim(),
-        tableNumber: tableNum,
-        tableId: data.table.id,
-        tableName: data.table.name,
+        sessionId: data.session.sessionId,
+        customerName: data.session.customerName,
+        tableNumber: data.session.tableNumber,
+        tableId: data.session.tableId,
+        tableName: data.session.tableName,
       });
 
       router.push('/menu');

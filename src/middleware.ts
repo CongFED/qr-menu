@@ -4,6 +4,22 @@ import { auth } from '@/lib/auth';
 export default async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
+  // Redirect already authenticated users away from login pages
+  if (pathname === '/admin/login') {
+    const session = await auth();
+    if (session?.user && (session.user as { role: string }).role === 'ADMIN') {
+      return NextResponse.redirect(new URL('/admin', request.url));
+    }
+  }
+
+  if (pathname === '/staff/login') {
+    const session = await auth();
+    const role = (session?.user as { role?: string })?.role;
+    if (role === 'STAFF' || role === 'ADMIN') {
+      return NextResponse.redirect(new URL('/staff/orders', request.url));
+    }
+  }
+
   // Admin routes protection
   if (pathname.startsWith('/admin') && !pathname.startsWith('/admin/login')) {
     const session = await auth();

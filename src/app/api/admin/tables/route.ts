@@ -12,6 +12,11 @@ export async function GET() {
       prisma.restaurantTable.findMany({
         orderBy: { number: 'asc' },
         include: {
+          tableSessions: {
+            where: { status: 'ACTIVE' },
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+          },
           orders: {
             where: {
               status: { notIn: ['COMPLETED', 'CANCELLED'] },
@@ -42,7 +47,8 @@ export async function GET() {
 
     const tables = rawTables.map((t) => {
       const activeOrders = t.orders;
-      const isOccupied = activeOrders.length > 0;
+      const activeSession = t.tableSessions?.[0] || null;
+      const isOccupied = activeOrders.length > 0 || activeSession !== null;
       const totalActiveAmount = activeOrders.reduce((sum, o) => sum + o.totalAmount, 0);
       const totalItemCount = activeOrders.reduce(
         (sum, o) => sum + o.items.reduce((iSum, item) => iSum + item.quantity, 0),
@@ -64,11 +70,18 @@ export async function GET() {
           : isOccupied
           ? 'OCCUPIED'
           : 'AVAILABLE',
-        customerName: isOccupied ? activeOrders[0].customerName : null,
+        customerName: activeSession?.customerName || (activeOrders.length > 0 ? activeOrders[0].customerName : null),
+        activeSession: activeSession
+          ? {
+              id: activeSession.id,
+              customerName: activeSession.customerName,
+              createdAt: activeSession.createdAt,
+            }
+          : null,
         activeOrderCount: activeOrders.length,
         itemCount: totalItemCount,
         currentBillAmount: totalActiveAmount,
-        firstOrderTime: isOccupied ? activeOrders[0].createdAt : null,
+        firstOrderTime: activeOrders.length > 0 ? activeOrders[0].createdAt : activeSession?.createdAt || null,
         activeOrders: activeOrders.map((o) => ({
           id: o.id,
           orderNumber: o.orderNumber,

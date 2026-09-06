@@ -31,7 +31,7 @@ interface Category {
 function MenuContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { session, isReady } = useCustomerSession();
+  const { session, setSession, isReady } = useCustomerSession();
   const { items, addItem, updateQuantity, removeItem } = useCart();
   const [categories, setCategories] = useState<Category[]>([]);
   const [activeCategory, setActiveCategory] = useState<string>('');
@@ -41,13 +41,37 @@ function MenuContent() {
   const [callLoading, setCallLoading] = useState(false);
   const [callSuccess, setCallSuccess] = useState(false);
 
-  // Redirect to welcome if no session
+  // Handle session check and auto-join table session
   useEffect(() => {
-    if (isReady && !session) {
-      const table = searchParams?.get('table');
-      router.push(table ? `/?table=${table}` : '/');
+    if (!isReady) return;
+
+    const tableParam = searchParams?.get('table');
+    if (!session) {
+      if (tableParam) {
+        // Auto-check if table already has an active session
+        fetch(`/api/tables/${tableParam}/session`)
+          .then((r) => r.json())
+          .then((data) => {
+            if (data?.hasActiveSession && data.session) {
+              setSession({
+                sessionId: data.session.sessionId,
+                customerName: data.session.customerName,
+                tableNumber: data.session.tableNumber,
+                tableId: data.session.tableId,
+                tableName: data.session.tableName,
+              });
+            } else {
+              router.push(`/table/${tableParam}`);
+            }
+          })
+          .catch(() => {
+            router.push(`/table/${tableParam}`);
+          });
+      } else {
+        router.push('/');
+      }
     }
-  }, [isReady, session, router, searchParams]);
+  }, [isReady, session, router, searchParams, setSession]);
 
   // Fetch menu
   useEffect(() => {

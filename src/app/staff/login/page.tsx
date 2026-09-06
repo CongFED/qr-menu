@@ -27,8 +27,7 @@ export default function StaffLoginPage() {
         setError('Email hoặc mật khẩu không đúng');
         setLoading(false);
       } else {
-        router.push('/staff/orders');
-        router.refresh();
+        window.location.href = '/staff/orders';
       }
     } catch {
       setError('Có lỗi xảy ra. Vui lòng thử lại.');

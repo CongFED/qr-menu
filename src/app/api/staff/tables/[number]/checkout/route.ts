@@ -48,8 +48,17 @@ export async function POST(
     const totalAmount = activeOrders.reduce((sum, o) => sum + o.totalAmount, 0);
     const orderIds = activeOrders.map((o) => o.id);
     const sessionIds = Array.from(new Set(activeOrders.map((o) => o.sessionId)));
+    const activeSessions = await prisma.tableSession.findMany({
+      where: {
+        tableId: table.id,
+        status: 'ACTIVE',
+      },
+    });
+    const allSessionIds = Array.from(
+      new Set([...sessionIds, ...activeSessions.map((s) => s.id)])
+    );
 
-    // Mark all active orders as COMPLETED in a transaction
+    // Mark all active orders and table sessions as COMPLETED in a transaction
     await prisma.$transaction([
       ...(orderIds.length > 0
         ? [
@@ -63,6 +72,17 @@ export async function POST(
             }),
           ]
         : []),
+      // Complete all active table sessions
+      prisma.tableSession.updateMany({
+        where: {
+          tableId: table.id,
+          status: 'ACTIVE',
+        },
+        data: {
+          status: 'COMPLETED',
+          endedAt: new Date(),
+        },
+      }),
       // Resolve any pending staff calls for this table
       prisma.staffCall.updateMany({
         where: {
@@ -99,13 +119,19 @@ export async function POST(
       totalAmount,
     });
 
-    // Notify customer session
-    sessionIds.forEach((sId) => {
+    // Notify customer session and table channel
+    allSessionIds.forEach((sId) => {
       sseManager.broadcast(`session-${sId}`, 'session_completed', {
         tableNumber,
         totalAmount,
         message: 'Bàn đã thanh toán hoàn tất. Cảm ơn quý khách!',
       });
+    });
+
+    sseManager.broadcast(`table-${tableNumber}`, 'session_completed', {
+      tableNumber,
+      totalAmount,
+      message: 'Bàn đã thanh toán hoàn tất. Cảm ơn quý khách!',
     });
 
     return NextResponse.json({

@@ -3,20 +3,53 @@
 import { ReactNode } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { SessionProvider } from '@/hooks/useSession';
+import { SessionProvider, useCustomerSession } from '@/hooks/useSession';
 import { CartProvider, useCart } from '@/hooks/useCart';
 import { formatPrice } from '@/lib/constants';
 import RestaurantMenuRoundedIcon from '@mui/icons-material/RestaurantMenuRounded';
 import ShoppingCartRoundedIcon from '@mui/icons-material/ShoppingCartRounded';
 import ReceiptLongRoundedIcon from '@mui/icons-material/ReceiptLongRounded';
 import ArrowForwardRoundedIcon from '@mui/icons-material/ArrowForwardRounded';
+import { useRouter } from 'next/navigation';
+
+function SessionTerminatedModal() {
+  const { sessionTerminated, resetSessionTerminated } = useCustomerSession();
+  const router = useRouter();
+
+  if (!sessionTerminated) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 animate-fade-in">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm p-6 text-center animate-slide-up border border-slate-100">
+        <div className="w-16 h-16 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center mx-auto mb-4 text-3xl">
+          🎉
+        </div>
+        <h3 className="text-lg font-black text-slate-900 mb-1">
+          Bữa ăn đã hoàn tất!
+        </h3>
+        <p className="text-xs text-slate-500 mb-6 leading-relaxed">
+          Bàn của bạn đã được nhân viên thanh toán. Cảm ơn quý khách đã thưởng thức ẩm thực tại Suối Đá Hòn Giao!
+        </p>
+        <button
+          onClick={() => {
+            resetSessionTerminated();
+            router.push('/');
+          }}
+          className="w-full py-3.5 bg-gradient-to-r from-[#FF6B35] to-[#FF4500] hover:from-[#E04817] hover:to-[#D83B00] text-white rounded-2xl font-bold text-sm shadow-lg shadow-orange-500/25 transition-all"
+        >
+          QUAY LẠI TRANG CHỦ
+        </button>
+      </div>
+    </div>
+  );
+}
 
 function BottomNav() {
   const pathname = usePathname();
   const { totalItems, totalAmount } = useCart();
 
-  // Hide bottom nav on pages with checkout actions or entry
-  if (!pathname || pathname === '/' || pathname === '/cart' || pathname?.startsWith('/order/')) {
+  // Hide bottom nav on pages with checkout actions, table entry, or landing
+  if (!pathname || pathname === '/' || pathname === '/cart' || pathname?.startsWith('/order/') || pathname?.startsWith('/table/')) {
     return null;
   }
 
@@ -97,6 +130,7 @@ export default function CustomerLayout({ children }: { children: ReactNode }) {
             {children}
           </main>
           <BottomNav />
+          <SessionTerminatedModal />
         </div>
       </CartProvider>
     </SessionProvider>

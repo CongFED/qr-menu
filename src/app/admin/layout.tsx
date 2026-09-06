@@ -191,6 +191,11 @@ function AdminLayoutInner({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
 
+  // If on login page, render children cleanly without sidebar/navigation
+  if (pathname === '/admin/login') {
+    return <>{children}</>;
+  }
+
   // Quick bottom nav links for mobile
   const quickBottomLinks = [
     { href: '/admin', label: 'Dashboard', icon: DashboardRoundedIcon },

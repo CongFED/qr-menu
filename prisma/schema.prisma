@@ -72,7 +72,28 @@ model RestaurantTable {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  orders Order[]
+  orders        Order[]
+  tableSessions TableSession[]
+}
+
+// ============================================
+// TABLE SESSIONS
+// ============================================
+
+model TableSession {
+  id           String    @id @default(cuid())
+  tableId      String
+  tableNumber  Int
+  customerName String
+  status       String    @default("ACTIVE") // ACTIVE | COMPLETED | CANCELLED
+  createdAt    DateTime  @default(now())
+  endedAt      DateTime?
+
+  table        RestaurantTable @relation(fields: [tableId], references: [id], onDelete: Cascade)
+
+  @@index([tableId, status])
+  @@index([tableNumber, status])
+  @@index([status])
 }
 
 // ============================================

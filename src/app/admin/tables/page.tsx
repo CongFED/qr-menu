@@ -239,7 +239,7 @@ export default function AdminTablesPage() {
     setQrModalTable(t);
     try {
       const origin = typeof window !== 'undefined' ? window.location.origin : '';
-      const targetUrl = `${origin}/menu?table=${t.number}`;
+      const targetUrl = `${origin}/table/${t.number}`;
       const url = await QRCode.toDataURL(targetUrl, {
         width: 300,
         margin: 2,
@@ -1420,7 +1420,7 @@ export default function AdminTablesPage() {
           )}
 
           <Typography variant="caption" sx={{ color: '#94A3B8', display: 'block', mt: 2 }}>
-            Đường dẫn gọi món: /menu?table={qrModalTable?.number}
+            Đường dẫn gọi món trực tiếp: /table/{qrModalTable?.number}
           </Typography>
         </DialogContent>
 
